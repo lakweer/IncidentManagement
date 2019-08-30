@@ -11,9 +11,6 @@ __pycache__/
 media/*
 !media/.keep
 
-<<<<<<< HEAD
 env/
-=======
 media/
 media
->>>>>>> 9dcde7f5720d32212d82b6999f41f7dbeabbef6d

@@ -135,9 +135,6 @@ class IncidentFormInternal extends Component {
     }
 
     handleSubmit = (values, actions) => {
-<<<<<<< HEAD
-        this.props.submitIncidentBasicDetails(values);
-=======
         
 
         const { paramIncidentId } = this.props.match.params
@@ -173,7 +170,6 @@ class IncidentFormInternal extends Component {
         }
 
         return initData;
->>>>>>> 9dcde7f5720d32212d82b6999f41f7dbeabbef6d
     }
 
     callbackFunction = (childData) => {
