@@ -29,11 +29,14 @@ import {
     stepForwardIncidentStepper,
     fetchUpdateReporter,
     fetchUpdateIncident,
-    resetIncidentForm
+    resetIncidentForm,
+    submitInternalIncidentData,
+    fetchUpdateInternalIncidentData
 } from '../state/IncidentFiling.actions'
 import {
+    fetchChannels,
     fetchElections,
-    fetchCatogories,
+    fetchCategories,
     fetchProvinces,
     fetchDistricts,
     fetchDivisionalSecretariats,
@@ -41,6 +44,7 @@ import {
     fetchPollingDivisions,
     fetchPoliceStations,
     fetchPollingStations,
+    fetchPoliceDivisions,
     fetchWards,
     fetchActiveIncidentData,
     resetActiveIncident
@@ -74,14 +78,16 @@ const styles = theme => ({
 class IncidentFormInternal extends Component {
 
     state = {
+        channel: "",
         title: "default title",
         description: "",
-        current_status: "OCCURRED",
-        date: "",
+        occurence: "OCCURRED",
+        occured_date: "",
         time: "",
         otherCat: "",
         category: "",
         election: "",
+        severity: "",
         location: "",
         address: "",
         city: "",
@@ -92,6 +98,7 @@ class IncidentFormInternal extends Component {
         pollingDivision: "",
         pollingStation: "",
         policeStation: "",
+        policeDivision: "",
         reporterConsent: false,
         reporterName: "",
         reporterType: "",
@@ -103,8 +110,9 @@ class IncidentFormInternal extends Component {
     
 
     componentDidMount() {
+        this.props.getChannels();
         this.props.getElections();
-        this.props.getcategories();
+        this.props.getCategories();
         this.props.getProvinces();
         this.props.getDistricts();
         this.props.getDivisionalSecretariats();
@@ -112,7 +120,7 @@ class IncidentFormInternal extends Component {
         this.props.getPollingDivisions();
         this.props.getPollingStations();
         this.props.getPoliceStations();
-        this.props.getPollingStations();
+        this.props.getPoliceDivisions();
         this.props.getWards();
 
         this.props.resetIncidentForm();
@@ -127,7 +135,45 @@ class IncidentFormInternal extends Component {
     }
 
     handleSubmit = (values, actions) => {
+<<<<<<< HEAD
         this.props.submitIncidentBasicDetails(values);
+=======
+        
+
+        const { paramIncidentId } = this.props.match.params
+
+        if(paramIncidentId){
+            this.props.updateInternalIncident(paramIncidentId, values);
+            this.props.history.push(`/app/review/${paramIncidentId}`);
+        }else{
+            this.props.submitInternalIncident(values);
+            this.props.history.push('/app/review');
+        }
+    }
+
+    getInitialValues = () => {
+        const { paramIncidentId } = this.props.match.params
+
+        if(!paramIncidentId){
+            // new incident form
+            return this.state;
+        }
+
+        var initData = { ...this.state, ...this.props.incident };
+        const reporter = this.props.reporter;
+
+        if (reporter) {
+            Object.assign(initData, {
+                "reporterName": reporter.name,
+                "reporterType": reporter.reporter_type,
+                "reporterEmail": reporter.email,
+                "reporterMobile": reporter.telephone,
+                "reporterAddress": reporter.address
+            });
+        }
+
+        return initData;
+>>>>>>> 9dcde7f5720d32212d82b6999f41f7dbeabbef6d
     }
 
     callbackFunction = (childData) => {
@@ -148,12 +194,13 @@ class IncidentFormInternal extends Component {
 
     render() {
         const { classes } = this.props;
-
+        
         return (
             <div className={classes.root}>
                 <ScrollableTabsButtonForce></ScrollableTabsButtonForce>
                 <Formik
-                    initialValues={this.state}
+                    enableReinitialize={true}
+                    initialValues={this.getInitialValues()}
                     onSubmit={(values, actions) => {
                         values.province = this.state.province["value"];
                         values.district = this.state.district["value"];
@@ -164,10 +211,83 @@ class IncidentFormInternal extends Component {
                     render={
                         ({ handleSubmit, handleChange, handleBlur, values, errors }) => (
                             <form className={classes.container} noValidate autoComplete="off" onSubmit={handleSubmit}>
-
+                                <div style={{display:"none"}}>{this.props.incident.id}</div>
                                 {/* basic incident detail information */}
                                 <Paper className={classes.paper}>
                                     <Grid container spacing={24}>
+                                        <Grid item xs={12}>
+                                            <Grid item xs={12} sm={6}>
+                                                <FormControl className={classes.formControl}>
+                                                    <InputLabel htmlFor="channel">Received Mode</InputLabel>
+                                                    <Select
+                                                        value={values.channel}
+                                                        onChange={handleChange}
+                                                        inputProps={{
+                                                            name: 'channel',
+                                                            id: 'channel',
+                                                        }}
+                                                    >
+                                                        {this.props.channels.map((c, k) => (
+                                                            <MenuItem value={c.name} key={k}>{c.name}</MenuItem>
+                                                        ))}
+                                                        <MenuItem value="Other"> Other </MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item xs={12}>
+                                            <TextField
+                                                type="text"
+                                                name="title"
+                                                label="title"
+                                                placeholder="Title"
+                                                className={classes.textField}
+                                                value={values.title}
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12}>
+                                            <TextField
+                                                type="text"
+                                                name="description"
+                                                label="Description"
+                                                placeholder="Press enter for new lines."
+                                                className={classes.textField}
+                                                multiline
+                                                value={values.description}
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={6}>
+                                            <FormControl component="fieldset" className={classes.formControl}>
+                                                <FormLabel component="legend">Occurrance</FormLabel>
+                                                <RadioGroup
+                                                    aria-label="Occurence"
+                                                    name="occurence"
+                                                    className={classes.group}
+                                                    value={values.occurence}
+                                                    onChange={handleChange}
+                                                    row={true}
+                                                >
+                                                    <FormControlLabel value="OCCURRED" control={<Radio />} label="Occurred" />
+                                                    <FormControlLabel value="OCCURRING" control={<Radio />} label="Occurring" />
+                                                    <FormControlLabel value="WILL_OCCUR" control={<Radio />} label="Will Occur" />
+                                                </RadioGroup>
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item xs={6} sm={3}>
+                                            <TextField
+                                                margin="normal"
+                                                id="occured_date"
+                                                label="occured_date"
+                                                type="datetime-local"
+                                                value={values.occured_date}
+                                                InputLabelProps={{ shrink: true }}
+                                                onChange={handleChange}
+                                            />
+                                        </Grid>
                                         <Grid item xs={12} sm={6}>
                                             <FormControl className={classes.formControl}>
                                                 <InputLabel htmlFor="category">Category</InputLabel>
@@ -197,61 +317,6 @@ class IncidentFormInternal extends Component {
                                                 className={classes.textField}
                                             />
                                         </Grid>
-                                        <Grid item xs={12}>
-                                            <TextField
-                                                type="text"
-                                                name="description"
-                                                label="Description"
-                                                placeholder="Press enter for new lines."
-                                                className={classes.textField}
-                                                multiline
-                                                value={values.description}
-                                                onChange={handleChange}
-                                                onBlur={handleBlur}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} sm={6}>
-                                            <FormControl component="fieldset" className={classes.formControl}>
-                                                <FormLabel component="legend">Occurrance</FormLabel>
-                                                <RadioGroup
-                                                    aria-label="Current status"
-                                                    name="current_status"
-                                                    className={classes.group}
-                                                    value={values.current_status}
-                                                    onChange={handleChange}
-                                                    row={true}
-                                                >
-                                                    <FormControlLabel value="OCCURRED" control={<Radio />} label="Occurred" />
-                                                    <FormControlLabel value="OCCURRING" control={<Radio />} label="Occurring" />
-                                                    <FormControlLabel value="WILL_OCCUR" control={<Radio />} label="Will Occur" />
-                                                </RadioGroup>
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item xs={6} sm={3}>
-                                            <TextField
-                                                margin="normal"
-                                                id="date"
-                                                label="Date"
-                                                type="date"
-                                                value={values.date}
-                                                InputLabelProps={{ shrink: true }}
-                                                onChange={handleChange}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={6} sm={3}>
-                                            <TextField
-                                                id="time"
-                                                label="Time"
-                                                type="time"
-                                                value={values.time}
-                                                margin="normal"
-                                                InputLabelProps={{ shrink: true }}
-                                                inputProps={{
-                                                    step: 300, // 5 min
-                                                }}
-                                                onChange={handleChange}
-                                            />
-                                        </Grid>
                                         <Grid item xs={12} sm={6}>
                                             <FormControl className={classes.formControl}>
                                                 <InputLabel htmlFor="election" >Election</InputLabel>
@@ -267,6 +332,31 @@ class IncidentFormInternal extends Component {
                                                     {this.props.elections.map((c, k) => (
                                                         <MenuItem value={c.code} key={k}>{c.name}</MenuItem>
                                                     ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item xs={12} sm={6}>
+                                            <FormControl className={classes.formControl}>
+                                                <InputLabel htmlFor="severity" >Severity</InputLabel>
+                                                <Select
+                                                    value={values.severity}
+                                                    onChange={handleChange}
+                                                    inputProps={{
+                                                        name: 'severity',
+                                                        id: 'severity',
+                                                    }}
+                                                >
+                                                    <MenuItem value=""> <em>None</em> </MenuItem>
+                                                    <MenuItem value={1} key={1}>1</MenuItem>
+                                                    <MenuItem value={2} key={2}>2</MenuItem>
+                                                    <MenuItem value={3} key={3}>3</MenuItem>
+                                                    <MenuItem value={4} key={4}>4</MenuItem>
+                                                    <MenuItem value={5} key={5}>5</MenuItem>
+                                                    <MenuItem value={6} key={6}>6</MenuItem>
+                                                    <MenuItem value={7} key={7}>7</MenuItem>
+                                                    <MenuItem value={8} key={8}>8</MenuItem>
+                                                    <MenuItem value={9} key={9}>9</MenuItem>
+                                                    <MenuItem value={10} key={10}>10</MenuItem>
                                                 </Select>
                                             </FormControl>
                                         </Grid>
@@ -433,6 +523,24 @@ class IncidentFormInternal extends Component {
                                                 </Select>
                                             </FormControl>
                                         </Grid>
+                                        <Grid item xs={12} sm={4}>
+                                            <FormControl className={classes.formControl}>
+                                                <InputLabel htmlFor="policeDivision">Police Division</InputLabel>
+                                                <Select
+                                                    value={values.policeDivision}
+                                                    onChange={handleChange}
+                                                    inputProps={{
+                                                        name: 'policeDivision',
+                                                        id: 'policeDivision',
+                                                    }}
+                                                >
+                                                    <MenuItem value=""> <em>None</em> </MenuItem>
+                                                    {this.props.policeDivisions.map((c, k) => (
+                                                        <MenuItem value={c.code} key={k}>{c.name}</MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid>
                                     </Grid>
                                 </Paper>
 
@@ -485,17 +593,6 @@ class IncidentFormInternal extends Component {
                                                 label="Reporter Mobile"
                                                 className={classes.textField}
                                                 value={values.reporterMobile}
-                                                onChange={handleChange}
-                                                margin="normal"
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} sm={6}>
-                                            <TextField
-                                                id="reporterLandline"
-                                                name="reporterLandline"
-                                                label="Reporter Landline"
-                                                className={classes.textField}
-                                                value={values.reporterLandline}
                                                 onChange={handleChange}
                                                 margin="normal"
                                             />
@@ -565,6 +662,7 @@ const mapStateToProps = (state, ownProps) => {
         incidentId: state.sharedReducer.activeIncident.data ? state.sharedReducer.activeIncident.data.id : null,
         reporterId: state.sharedReducer.activeIncidentReporter ? state.sharedReducer.activeIncidentReporter.id : null,
 
+        channels: state.sharedReducer.channels,
         categories: state.sharedReducer.categories,
         districts: state.sharedReducer.districts,
         provinces: state.sharedReducer.provinces,
@@ -573,6 +671,7 @@ const mapStateToProps = (state, ownProps) => {
         pollingDivisions: state.sharedReducer.pollingDivisions,
         pollingStations: state.sharedReducer.pollingStations,
         policeStations: state.sharedReducer.policeStations,
+        policeDivisions: state.sharedReducer.policeDivisions,
         wards: state.sharedReducer.wards,
         elections: state.sharedReducer.elections,
 
@@ -585,8 +684,14 @@ const mapDispatchToProps = (dispatch) => {
         submitIncidentBasicDetails: (values) => {
             dispatch(submitIncidentBasicData(values))
         },
+        submitInternalIncident: (values) => {
+            dispatch(submitInternalIncidentData(values))
+        },
         updateIncidentBasicDetails: (incidentId, incidentData) => {
             dispatch(fetchUpdateIncident(incidentId, incidentData));
+        },
+        updateInternalIncident: (incidentId, incidentData) => {
+            dispatch(fetchUpdateInternalIncidentData(incidentId, incidentData));
         },
         submitContactDetails: (incidentId, reporterId, reporterData) => {
             dispatch(fetchUpdateReporter(incidentId, reporterId, reporterData))
@@ -598,11 +703,14 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(stepForwardIncidentStepper())
         },
 
+        getChannels: () => {
+            dispatch(fetchChannels())
+        },
         getElections: () => {
             dispatch(fetchElections());
         },
-        getcategories: () => {
-            dispatch(fetchCatogories())
+        getCategories: () => {
+            dispatch(fetchCategories())
         },
         getProvinces: () => {
             dispatch(fetchProvinces())
@@ -614,7 +722,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(fetchDivisionalSecretariats())
         },
         getGramaNiladharis: () => {
-            dispatch(fetchGramaNiladharis());
+            dispatch(fetchGramaNiladharis())
         },
         getPollingDivisions: () => {
             dispatch(fetchPollingDivisions())
@@ -624,6 +732,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         getPoliceStations: () => {
             dispatch(fetchPoliceStations())
+        },
+        getPoliceDivisions: () => {
+            dispatch(fetchPoliceDivisions())
         },
         getWards: () => {
             dispatch(fetchWards())
@@ -643,7 +754,7 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default compose(
+export default withRouter(compose(
     connect(mapStateToProps, mapDispatchToProps),
     withStyles(styles)
-)(IncidentFormInternal);
+)(IncidentFormInternal));
