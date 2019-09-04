@@ -20,6 +20,7 @@ import Button from '@material-ui/core/Button';
 import Snackbar from '@material-ui/core/Snackbar';
 import IntegrationReactSelect from "./IntegrationReactSelect";
 import ScrollableTabsButtonForce from "./slider";
+import StepSlider from "./stepSlider";
 
 import Checkbox from '@material-ui/core/Checkbox';
 
@@ -78,7 +79,7 @@ const styles = theme => ({
 class IncidentFormInternal extends Component {
 
     state = {
-        channel: "",
+        channel: "Petitions",
         title: "default title",
         description: "",
         occurence: "OCCURRED",
@@ -175,15 +176,27 @@ class IncidentFormInternal extends Component {
     callbackFunction = (childData) => {
         switch(childData["name"]){
             case "province":
-            this.setState({province: childData});
+            this.setState({province: childData["value"]});
             case "district":
-                this.setState({district:childData});
+                this.setState({district:childData["value"]});
             case "Divisional Secretariat":
-                this.setState({divisionalSecretariat:childData});
+                this.setState({divisionalSecretariat:childData["value"]});
             case "Grama Niladhari Division":
-                this.setState({gramaNiladhari:childData});
+                this.setState({gramaNiladhari:childData["value"]});
+            case "Polling Division":
+                this.setState({pollingDivision:childData["value"]});
+            case "Polling Station":
+                this.setState({pollingStation:childData["value"]});
+            case "Police Division":
+                this.setState({policeDivision:childData["value"]});
+            case "Police Station":
+                this.setState({policeStation:childData["value"]});
             case " ":
         }
+    }
+
+    setChannel = (channel) => {
+        this.setState({channel : channel});
     }
 
 
@@ -193,15 +206,20 @@ class IncidentFormInternal extends Component {
         
         return (
             <div className={classes.root}>
-                <ScrollableTabsButtonForce></ScrollableTabsButtonForce>
+                <ScrollableTabsButtonForce  getChannelType={this.setChannel} chanelsFromParent={this.props.channels}></ScrollableTabsButtonForce>
                 <Formik
                     enableReinitialize={true}
                     initialValues={this.getInitialValues()}
                     onSubmit={(values, actions) => {
-                        values.province = this.state.province["value"];
-                        values.district = this.state.district["value"];
-                        values.divisionalSecretariat = this.state.divisionalSecretariat["value"];
-                        values.gramaNiladhari = this.state.gramaNiladhari["value"];
+                        values.province = this.state.province;
+                        values.district = this.state.district;
+                        values.divisionalSecretariat = this.state.divisionalSecretariat;
+                        values.gramaNiladhari = this.state.gramaNiladhari;
+                        values.channel = this.state.channel;
+                        values.pollingStation = this.state.pollingStation;
+                        values.policeDivision = this.state.policeDivision;
+                        values.pollingDivision = this.state.pollingDivision;
+                        values.policeStation = this.state.policeStation;
                         this.handleSubmit(values, actions)
                     }}
                     render={
@@ -210,27 +228,7 @@ class IncidentFormInternal extends Component {
                                 <div style={{display:"none"}}>{this.props.incident.id}</div>
                                 {/* basic incident detail information */}
                                 <Paper className={classes.paper}>
-                                    <Grid container spacing={24}>
-                                        <Grid item xs={12}>
-                                            <Grid item xs={12} sm={6}>
-                                                <FormControl className={classes.formControl}>
-                                                    <InputLabel htmlFor="channel">Received Mode</InputLabel>
-                                                    <Select
-                                                        value={values.channel}
-                                                        onChange={handleChange}
-                                                        inputProps={{
-                                                            name: 'channel',
-                                                            id: 'channel',
-                                                        }}
-                                                    >
-                                                        {this.props.channels.map((c, k) => (
-                                                            <MenuItem value={c.name} key={k}>{c.name}</MenuItem>
-                                                        ))}
-                                                        <MenuItem value="Other"> Other </MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </Grid>
-                                        </Grid>
+                                    <Grid container spacing={24}>                                       
                                         <Grid item xs={12}>
                                             <TextField
                                                 type="text"
@@ -332,6 +330,7 @@ class IncidentFormInternal extends Component {
                                             </FormControl>
                                         </Grid>
                                         <Grid item xs={12} sm={6}>
+                                        {/* <StepSlider/> */}
                                             <FormControl className={classes.formControl}>
                                                 <InputLabel htmlFor="severity" >Severity</InputLabel>
                                                 <Select
@@ -466,76 +465,72 @@ class IncidentFormInternal extends Component {
                                         />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
-                                            <FormControl className={classes.formControl}>
-                                                <InputLabel htmlFor="pollingDivision">Polling Division</InputLabel>
-                                                <Select
-                                                    value={values.pollingDivision}
-                                                    onChange={handleChange}
-                                                    inputProps={{
-                                                        name: 'pollingDivision',
-                                                        id: 'pollingDivision',
-                                                    }}
-                                                >
-                                                    <MenuItem value=""> <em>None</em> </MenuItem>
-                                                    {this.props.pollingDivisions.map((c, k) => (
-                                                        <MenuItem value={c.code} key={k}>{c.name}</MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
+                                        <IntegrationReactSelect 
+                                            textField={{
+                                                label: "Polling Division",
+                                                InputLabelProps: {
+                                                  shrink: true
+                                                }
+                                              }}
+                                            suggestions ={this.props.pollingDivisions.map(suggestion => ({
+                                                value: suggestion.code,
+                                                label: suggestion.name,
+                                                name: "Polling Division"
+                                              }))}
+                                            parentCallback={this.callbackFunction}
+                                            placeholder={"Search your Polling Division"}
+                                        />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
-                                            <FormControl className={classes.formControl}>
-                                                <InputLabel htmlFor="pollingStation">Polling Station</InputLabel>
-                                                <Select
-                                                    value={values.pollingStation}
-                                                    onChange={handleChange}
-                                                    inputProps={{
-                                                        name: 'pollingStation',
-                                                        id: 'pollingStation',
-                                                    }}
-                                                >
-                                                    <MenuItem value=""> <em>None</em> </MenuItem>
-                                                    {this.props.pollingStations.map((c, k) => (
-                                                        <MenuItem value={c.code} key={k}>{c.name}</MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
+                                        <IntegrationReactSelect 
+                                            textField={{
+                                                label: "Polling Station",
+                                                InputLabelProps: {
+                                                  shrink: true
+                                                }
+                                              }}
+                                            suggestions ={this.props.pollingStations.map(suggestion => ({
+                                                value: suggestion.code,
+                                                label: suggestion.name,
+                                                name: "Polling Station"
+                                              }))}
+                                            parentCallback={this.callbackFunction}
+                                            placeholder={"Search your Polling Statiion"}
+                                        />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
-                                            <FormControl className={classes.formControl}>
-                                                <InputLabel htmlFor="policeStation">Police Station</InputLabel>
-                                                <Select
-                                                    value={values.policeStation}
-                                                    onChange={handleChange}
-                                                    inputProps={{
-                                                        name: 'policeStation',
-                                                        id: 'policeStation',
-                                                    }}
-                                                >
-                                                    <MenuItem value=""> <em>None</em> </MenuItem>
-                                                    {this.props.policeStations.map((c, k) => (
-                                                        <MenuItem value={c.code} key={k}>{c.name}</MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
+                                        <IntegrationReactSelect 
+                                            textField={{
+                                                label: "Police Station",
+                                                InputLabelProps: {
+                                                  shrink: true
+                                                }
+                                              }}
+                                            suggestions ={this.props.policeStations.map(suggestion => ({
+                                                value: suggestion.code,
+                                                label: suggestion.name,
+                                                name: "Police Station"
+                                              }))}
+                                            parentCallback={this.callbackFunction}
+                                            placeholder={"Search your Police Statiion"}
+                                        />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
-                                            <FormControl className={classes.formControl}>
-                                                <InputLabel htmlFor="policeDivision">Police Division</InputLabel>
-                                                <Select
-                                                    value={values.policeDivision}
-                                                    onChange={handleChange}
-                                                    inputProps={{
-                                                        name: 'policeDivision',
-                                                        id: 'policeDivision',
-                                                    }}
-                                                >
-                                                    <MenuItem value=""> <em>None</em> </MenuItem>
-                                                    {this.props.policeDivisions.map((c, k) => (
-                                                        <MenuItem value={c.code} key={k}>{c.name}</MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
+                                        <IntegrationReactSelect 
+                                            textField={{
+                                                label: "Police Division",
+                                                InputLabelProps: {
+                                                  shrink: true
+                                                }
+                                              }}
+                                            suggestions ={this.props.policeDivisions.map(suggestion => ({
+                                                value: suggestion.code,
+                                                label: suggestion.name,
+                                                name: "Police Division"
+                                              }))}
+                                            parentCallback={this.callbackFunction}
+                                            placeholder={"Search your Police Division"}
+                                        />
                                         </Grid>
                                     </Grid>
                                 </Paper>

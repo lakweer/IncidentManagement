@@ -28,27 +28,17 @@ const styles = theme => ({
 
 class ScrollableTabsButtonForce extends React.Component {
   state = {
-    value: 0,
-    provinces: [
-      { id: 1, code: "PRV1", name: "Central" },
-      { id: 2, code: "PRV2", name: "Eastern" },
-      { id: 3, code: "PRV3", name: "North Central" },
-      { id: 4, code: "PRV4", name: "Northern" },
-      { id: 5, code: "PRV5", name: "North Western" },
-      { id: 6, code: "PRV6", name: "Sabaragamuwa" },
-      { id: 7, code: "PRV7", name: "Southern" },
-      { id: 8, code: "PRV8", name: "Uva" },
-      { id: 9, code: "PRV9", name: "Western" }
-    ]
+    value: 0
   };
 
   handleChange = (event, value) => {
+    this.props.getChannelType(this.props.chanelsFromParent[value]["name"]);
     this.setState({ value });
   };
 
   render() {
     const { classes } = this.props;
-    const { value, provinces } = this.state;
+    const { value } = this.state;
 
     return (
       <div className={classes.root}>
@@ -61,8 +51,10 @@ class ScrollableTabsButtonForce extends React.Component {
             indicatorColor="primary"
             textColor="primary"
           >
-            {provinces.map(counter => (
-              <Tab label={provinces[counter.id - 1]["name"]} />
+            {this.props.chanelsFromParent.map(chanel => (
+              <Tab
+                label={this.props.chanelsFromParent[chanel.id - 1]["name"]}
+              />
             ))}
           </Tabs>
         </AppBar>
